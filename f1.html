@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Betting Game</title>
+    <style>
+        /* General styles */
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+            animation: backgroundAnimation 10s infinite alternate;
+        }
+
+        @keyframes backgroundAnimation {
+            0% { background: linear-gradient(135deg, #1e3c72, #2a5298); }
+            100% { background: linear-gradient(135deg, #2a5298, #1e3c72); }
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-top: 20px;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        form {
+            margin: 20px auto;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            width: 80%;
+            max-width: 400px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            animation: formFadeIn 1.5s ease;
+        }
+
+        @keyframes formFadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        input {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 5px;
+            outline: none;
+            background: rgba(255, 255, 255, 0.8);
+            font-size: 1rem;
+        }
+
+        button {
+            background: #ffcc00;
+            color: #1e3c72;
+            font-size: 1.2rem;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            background: #ff9900;
+            transform: scale(1.05);
+        }
+
+        /* Live betting section */
+        div {
+            margin: 20px auto;
+        }
+
+        #liveNumber {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #ffcc00;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .betting-section {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 500px;
+            margin: 0 auto;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            animation: bettingFadeIn 1.5s ease;
+        }
+
+        @keyframes bettingFadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .symbol {
+            font-size: 5rem;
+            margin: 10px 0;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+       
+            body {
+                font-family: Arial, sans-serif;
+                text-align: center;
+                margin-top: 50px;
+            }
+            .display {
+                font-size: 3rem;
+                font-weight: bold;
+                display: flex;
+                justify-content: center;
+                gap: 10px;
+            }
+            .digit {
+                background: black;
+                color: lime;
+                padding: 10px 15px;
+                border-radius: 5px;
+                font-family: monospace;
+            }
+        
+    </style>
+</head>
+<body>
+    <h1>🎲 Welcome to the Betting Game 🎲</h1>
+
+    <!-- User Registration -->
+    <form id="registerForm">
+        <h2>Register to Play</h2>
+        <input type="text" id="regUsername" placeholder="Username" required>
+        <input type="password" id="regPassword" placeholder="Password" required>
+        <input type="text" id="regPhone" placeholder="Phone Number" required>
+        <input type="number" id="regAge" placeholder="Age" required>
+        <button type="submit">Register</button>
+    </form>
+
+    <!-- Live Betting Game -->
+    <div class="betting-section">
+        <h2>🔢 Live Number 🔢</h2>
+        <p id="liveNumber"></p>
+        <span class="symbol">💰</span>
+        <form id="betForm">
+            <h3>Place Your Bet</h3>
+            <input type="number" id="betDigit" placeholder="Digit (0-9)" required>
+            <input type="number" id="betPosition" placeholder="Position (1-12)" required>
+            <button type="submit">Place Bet</button>
+        </form>
+    </div>
+
+    <script>
+        let isBetPlaced = false;
+
+        // Register User
+        document.getElementById("registerForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const username = document.getElementById("regUsername").value;
+            const password = document.getElementById("regPassword").value;
+            const phone = document.getElementById("regPhone").value;
+            const age = document.getElementById("regAge").value;
+
+            const response = await fetch("http://localhost:3000/register", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username, password, phone, age }),
+            });
+
+            const data = await response.json();
+            alert(data.message);
+        });
+
+        // WebSocket Connection for Live Data
+        const socket = new WebSocket("ws://localhost:3000");
+        socket.onmessage = (event) => {
+            if (!isBetPlaced) {
+                document.getElementById("liveNumber").innerText = event.data;
+            }
+        };
+
+        // Place Bet
+        document.getElementById("betForm").addEventListener("submit", (e) => {
+            e.preventDefault();
+            const betDigit = document.getElementById("betDigit").value;
+            const betPosition = document.getElementById("betPosition").value;
+
+            const liveNumber = document.getElementById("liveNumber").innerText;
+
+            if (liveNumber[betPosition - 1] === betDigit) {
+                alert("Congratulations! You are the winner!");
+            } else {
+                alert("Better luck next time!");
+            }
+
+            isBetPlaced = true; // Stop live number updates once bet is placed
+        });
+      
+          
+          
+        
+          
+    </script>
+</body>
+</html>

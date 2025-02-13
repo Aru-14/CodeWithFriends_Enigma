@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random 12-Digit Display</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+        .display {
+            font-size: 3rem;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        .digit {
+            background: black;
+            color: lime;
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Random 12-Digit Display</h1>
+    <div class="display" id="digitDisplay"></div>
+
+    <script>
+   // Establish WebSocket connection
+const ws = new WebSocket("ws://localhost:8000/ws");
+
+// Function to generate and send random digits
+function generateRandomDigits() {
+    let display = document.getElementById("digitDisplay");
+    display.innerHTML = "";
+    
+    let digitsArray = []; // Store all digits
+
+    for (let i = 0; i < 12; i++) {
+        let digit = document.createElement("span");
+        digit.className = "digit";
+        let randomDigit = Math.floor(Math.random() * 10); // Random 0-9
+        digit.innerText = randomDigit;
+        display.appendChild(digit);
+
+        digitsArray.push(randomDigit); // Add digit to array
+    }
+
+    // Send all digits as a JSON string to the WebSocket server
+    if (ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ digits: digitsArray }));
+        console.log("Sent:", digitsArray);
+    }
+}
+
+// Run every second
+setInterval(generateRandomDigits, 3000);
+generateRandomDigits(); // Initial call
+
+    </script>
+
+</body>
+</html>
